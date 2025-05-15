@@ -2,13 +2,15 @@ import requests
 from bs4 import BeautifulSoup
 import urllib.parse
 import time
-from lxml import html  # Or: from lxml.etree import HTML
-
+from lxml import html 
+import select_Page
+import product
 
 # Base URL
-base_url = 'https://shop.sartorius.com/us/c/biolayer-interferometry'
+base_url = 'https://shop.sartorius.com/in/c/aseptic-sampling-containers'
 cookies = {
     'NEXT_LOCALE': 'en-us',
+    'NEXT_COUNTRY': 'US',
     '_gcl_au': '1.1.418745738.1746937171',
     '_ga': 'GA1.1.1092704647.1746937171',
     'dd_anonymous_id': '81a439fc-eceb-41ee-abd5-c286b11d3518',
@@ -17,7 +19,6 @@ cookies = {
     '_sfid_4dc9': '{%22anonymousId%22:%22effaa041fe8d1976%22%2C%22consents%22:[{%22consent%22:{%22provider%22:%22OneTrust%22%2C%22purpose%22:%22Personalization%22%2C%22status%22:%22Opt%20In%22}%2C%22lastUpdateTime%22:%222025-05-11T04:19:32.126Z%22%2C%22lastSentTime%22:%222025-05-11T04:19:32.167Z%22}]}',
     '_mibhv': 'anon-1746937172199-9295845162_7395',
     'OptanonAlertBoxClosed': '2025-05-11T04:19:32.904Z',
-    'NEXT_COUNTRY': 'US',
     'bm_ss': 'ab8e18ef4e',
     'bm_mi': '1C2AB5EA3A4D704DECDA755F88FBA922~YAAQPGw/F4FJLYeWAQAA+KT4xxsFNor77lpZ1AWcY8zt3zgT7/okBDYJ9ujzZYXYAAodegX9bthmYfeNQFqps3/G8BtuDnUBev5k79HOn1i/j8cNT+fm6ol/ambbcwTz05SbdTK/GCL8vOpTcSYPlEGa/cV46DUyv3AIHi7wiWmDm7Mlhm9v0Juj5lWDcnRpjVSMV9QlcDDQfKs3WRJrxF1JN01WV6On2dl02GeSa1x32+q/uj8ZKnuFllYW6rLbsv9zZLyB/JiuA8CAHjHslgka+J+vNvg9KHyp1qT51AuYsb9X/hggL5+g2kAFfN8+6+Th4m2aqCpCSxDEOfyUfn1bs6g0zRh4AAHxfetQcnACpvbCKme5agB2GEhH/t2V4TXMeFCmvY+cXw==~1',
     'ak_bmsc': '2DA8C46D9C81644A7CFAE80BC7133308~000000000000000000000000000000~YAAQPGw/FwBKLYeWAQAA3bD4xxsYp4sF0vTYCX6oPYRDh+xgeuGBFuDWCFD/fhn0uf79FO9kKJGOwh5A8JJrG6LMF79Ft/rU0Gh/Y9zcjYXdwMSnh0YyBtiPe9PqaX2ML3bnsHmYjZXLxDyHgs2xxf28vm+dAchQhCFKGyQTKyFZHsc3w1aeffTWSAbLZtOwf7DXvB9b1/HV5CHJBB7P7Z0YIu4aL6lnKKjgaiDX/R1onCKfslNXFx6Id/o//wTiePd7j81P9D3dm3Om7NqABXRv4DwJawB2hQOkqteB7UilRga7e6bC4xOpL10I2WNrVvdUXYnI1S7oLpysa+2G9tMJZcmwb5XpYl7C27obClkq4X8wnpXa0JbtXG8JKcJWISEJ6Vl+rKknZtriCQlClNRAyPHT8ths8DvmmWDwYgmKwjrkFS8ssP7u43jJBrnooqJF7M6sYpbMxTGTmVpky6ayjYIkufyW8dU/d0FZDq7APdlEoKKGX2G1xnd+EGuziQqOihoZ6s43LoeO9bVX2mBIvPG7jss6hL8xWA8r7eY=',
@@ -55,7 +56,7 @@ headers = {
 }
 
 page = 1
-max_pages = 3  
+max_pages = 1  
 collected_urls = []
 pages_checked = 0  
 
@@ -64,8 +65,14 @@ while pages_checked < max_pages:
     full_url = f"{base_url}?{urllib.parse.urlencode(params)}"
 
     print(f"\n🔎 Scraping: {full_url}")
+    result  = select_Page.handle_cookie_and_language_popup(full_url)
+    url = result["url"]
+    cookies_dy = result["cookies"]
+    print(url)
 
-    response = requests.get(full_url)
+    response = requests.get(url
+                            ,headers=headers,
+                            cookies=cookies_dy)
     tree = html.fromstring(response.content)
     
     time.sleep(3)
@@ -81,8 +88,8 @@ while pages_checked < max_pages:
             href = element.get('href')
             if href:
                 full_href = urllib.parse.urljoin(base_url_1, href)
-                # product.productDetails(href)
-                collected_urls.append(href)
+                product.productDetails(full_href,cookies_dy)
+                collected_urls.append(full_href)
                 print(full_href)
         print(f"✅ Page {page} scraped: {len(elements)} links found.")
     else:
