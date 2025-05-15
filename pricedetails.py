@@ -1,5 +1,11 @@
 import requests
 import json
+
+from bs4 import BeautifulSoup
+import time
+import json
+import requests
+from lxml import html
 cookies = {
     '_gcl_au': '1.1.418745738.1746937171',
     '_ga': 'GA1.1.1092704647.1746937171',
@@ -41,21 +47,26 @@ params = {
     'country': 'US',
     'quantity': '1',
 }
-def get_product_price(product_cat_no):
-    response = requests.get(
-        # f'https://proxy-gateway.abcam.com/ecommerce/rest/v1/asset-definition/{product_cat_no}',
-        f'https://shop.sartorius.com/us/p/octet-streptavidin-sa-biosensor/18-5020',
-        params=params,
-        cookies=cookies,
-        headers=headers,
-    )
-    data = json.loads(response.text)
+def get_product_price(pro_url):
+    
+    response = requests.get(pro_url)
+    time.sleep(22)
 
-    result = []
-    for item in data.get('sizes', []):
-        size = f"{item['size']['value']}{item['size']['unit']}"
-        price = f"US$ {float(item['prices']['unitPriceWithoutDiscount']['value']):.2f}"
-        result.append({'Product Size': size, 'Product Price': price})
+    tree = html.fromstring(response.content)
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Step 3: Print result
-    return result
+    pack_size = tree.xpath("//div[contains(@class, 'page-details-variants-select-component')]"
+                         "//div[@class='variant-section']//ul[@class='variantSelectionList']"
+                         "//li//button[@aria-pressed='true']//text()")
+    pack_size_text = "".join(pack_size).strip()
+    print(pack_size_text)
+
+    data = soup.find('script',type='application/ld+json')
+    json_data =json.loads(data.string)
+
+    pack_sixe_price = tree.xpath("//div[@class='pdf-product-price-amount']/text()")
+     
+    print("Pack Size Price:", pack_sixe_price)
+        # print("Selected Button Value:", pack_size.text_content().strip())
+
+get_product_price("https://shop.sartorius.com/us/p/octet-streptavidin-sa-biosensor/18-5019")
