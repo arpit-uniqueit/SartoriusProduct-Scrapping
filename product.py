@@ -27,7 +27,7 @@ headers = {
 
 
 def write_to_excel(data):
-    headers = ["Item No.", "Product Name", "Product Description", "Product Images",
+    headers = ["Item No.", "Product Name","Category", "Product Description", "Product Images",
                "Pack Sizes", "Overview", "Document Links", "Specifications"]
     filename="products.xlsx"
 
@@ -61,7 +61,7 @@ def clean_html_description(html_description):
 
     return cleaned_text
 
-def productDetails(p_url,cookies_dy):
+def productDetails(p_url,cookies_dy,category):
     try:
         time.sleep(2)  
 
@@ -145,6 +145,7 @@ def productDetails(p_url,cookies_dy):
         write_to_excel([
             item_no,
             product_name,
+            category,
             product_description,
             product_images,
             product_price_data_text,
